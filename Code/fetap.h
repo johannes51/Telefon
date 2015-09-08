@@ -10,9 +10,9 @@
 
 #include <stdbool.h>
 
-void setRinger(bool ring);
-bool isRinging();
+void fetap_setRinger(bool ring);
+bool fetap_isRinging();
 
-bool isUnhooked();
+bool fetap_isUnhooked();
 
 #endif

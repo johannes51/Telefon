@@ -25,10 +25,10 @@ MOC_DIR = $${BUILD_DIRECTORY}
 SOURCES += \
     main.c \
     util.c \
-    handy.c \
-    fetap.c
+    fetap.c \
+    mobile.c
 
 HEADERS += \
     util.h \
-    handy.h \
-    fetap.h
+    fetap.h \
+    mobile.h
