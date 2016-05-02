@@ -26,9 +26,11 @@ SOURCES += \
     main.c \
     util.c \
     fetap.c \
-    mobile.c
+    mobile.c \
+    uart.c
 
 HEADERS += \
     util.h \
     fetap.h \
-    mobile.h
+    mobile.h \
+    uart.h

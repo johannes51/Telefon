@@ -8,8 +8,8 @@
  * For example making specific outputs blink, resetting the uC, ...
 */
 
-void wdt_init();
+void util_wdt_init();
 
-void uCReset();
+void util_uCReset();
 
 #endif

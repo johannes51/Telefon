@@ -9,7 +9,7 @@
  *
  * Initialisiert den Watchdog und stoppt ihn dann.
  */
-void wdt_init()
+void util_wdt_init()
 {
   MCUCSR = 0;
   wdt_reset();
@@ -21,7 +21,7 @@ void wdt_init()
  *
  * Startet den Watchdog-Timer und wartet dann, um einen Reset des uC zu erzwingen.
  */
-void uCReset()
+void util_uCReset()
 {
   wdt_enable(WDTO_15MS);
   _delay_ms(1000);
