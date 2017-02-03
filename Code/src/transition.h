@@ -1,7 +1,8 @@
 #ifndef TRANSITION_H
 #define TRANSITION_H
 
-#include "state.h"
+template <class GlobalState>
+class State;
 
 template <class GlobalState>
 class Transition
@@ -19,7 +20,7 @@ private:
   void (*_executeFunction)(GlobalState*);
   bool (*_triggerFunction)(GlobalState*);
   const State<GlobalState>* _fromState;
-  const State<GlobalState>* _toState;
+  State<GlobalState>* _toState;
 };
 
 template <class GlobalState>

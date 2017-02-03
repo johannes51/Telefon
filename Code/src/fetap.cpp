@@ -1,13 +1,34 @@
 // header include
 #include "fetap.h"
-
+// lib includes
 #include "Arduino.h"
 
 const unsigned long MaxDigitDelay = 4000;
+const unsigned short CradlePin = 6;
+const unsigned short NsaPin = 7;
+const unsigned short NsiPin = 8;
+const unsigned short RingerPin = 3;
 
 Fetap::Fetap()
 : _ringing(false)
+{/*
+  pinMode(CradlePin, INPUT);
+  pinMode(NsaPin, INPUT);
+  pinMode(NsiPin, INPUT);
+  pinMode(RingerPin, OUTPUT);
+  digitalWrite(RingerPin, LOW);*/
+}
+
+/*!
+* \brief Set the ringer status.
+* \param Status to set it to (true for ringing, false for silent).
+*/
+void Fetap::setRinger(bool ring)
 {
+  unsigned short level = ring ? HIGH : LOW;
+  digitalWrite(RingerPin, level);
+  digitalWrite(13, level);
+  _ringing = ring;
 }
 
 /*!
@@ -20,23 +41,12 @@ bool Fetap::isRinging()
 }
 
 /*!
- * \brief Set the ringer status.
- * \param Status to set it to (true for ringing, false for silent).
- */
-void Fetap::setRinger(bool ring)
-{
-  /* Hardware bal */
-  _ringing = ring;
-}
-
-/*!
  * \brief Read status of the hook switch.
  * \return Wether the switch is unhooked.
  */
 bool Fetap::isUnhooked()
 {
-  /* Hardware bla */
-  return false;
+  return digitalRead(CradlePin) == LOW;
 }
 
 std::string Fetap::commenceDialing()
@@ -61,4 +71,9 @@ int Fetap::listenForDigit()
 bool Fetap::isDoneDialing()
 {
   return (millis() > _lastDigitMillis + MaxDigitDelay);
+}
+
+bool Fetap::isTurned()
+{
+  return digitalRead(NsaPin) == LOW;
 }

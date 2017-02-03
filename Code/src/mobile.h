@@ -1,7 +1,10 @@
 #ifndef MOBILE_H
 #define MOBILE_H
 
+// stl includes
 #include <string>
+// lib includes
+#include "Sim800l.h"
 
 /*!
  * \file mobile.h
@@ -12,6 +15,8 @@
 class Mobile
 {
 public:
+  Mobile();
+
   bool isRinging();
   bool isCalling();
 
@@ -21,11 +26,14 @@ public:
 
   void setDialtone(bool tone);
   void setHangupTone(bool tone);
+private:
+  Sim800l _sim800;
 };
 
-/** Naked AT command, used for autobauding */
-#define AT_AT "AT"
 /** Query for network status */
+#define AT_AT "AT"
 #define AT_NETSTAT "AT+COPS"
+#define AT_TONE "AT+STTONE=1,1,"
+#define AT_RINGER_OFF "AT+CALM=1"
 
 #endif

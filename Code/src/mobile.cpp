@@ -1,7 +1,13 @@
 // header include
 #include "mobile.h"
-// lib includes
-#include "Sim800l.cpp"
+
+Mobile::Mobile()
+{
+  _sim800.begin();
+  _sim800.sendCommand(AT_AT, true);
+  _sim800.sendCommand(AT_AT, true);
+  _sim800.sendCommand(AT_RINGER_OFF, true);
+}
 
 /*!
 * \brief Check for phone ringing.
@@ -9,8 +15,8 @@
  */
 bool Mobile::isRinging()
 {
-  Sim800l sim;
-  return false;
+  int cs=_sim800.getCallStatus();
+  return cs == 3;
 }
 
 /*!
@@ -19,22 +25,12 @@ bool Mobile::isRinging()
  */
 bool Mobile::isCalling()
 {
-  return false;
+  return _sim800.getCallStatus() == 4;
 }
 
 bool Mobile::startCall()
 {
-  return false;
-}
-
-void Mobile::setDialtone(bool tone)
-{
-
-}
-
-void Mobile::setHangupTone(bool tone)
-{
-
+  return _sim800.answerCall();
 }
 
 /*!
@@ -44,7 +40,7 @@ void Mobile::setHangupTone(bool tone)
  */
 bool Mobile::startCall(const std::string& Number)
 {
-  return false;
+  return _sim800.callNumber(Number.c_str());
 }
 
 /*!
@@ -53,5 +49,15 @@ bool Mobile::startCall(const std::string& Number)
  */
 bool Mobile::hangUp()
 {
-  return true;
+  return _sim800.hangoffCall();
+}
+
+void Mobile::setDialtone(bool tone)
+{
+  std::string duration = tone ? "15300000" : "10";
+  _sim800.sendCommand(std::string(AT_TONE).append(duration).c_str());
+}
+
+void Mobile::setHangupTone(bool tone)
+{
 }
