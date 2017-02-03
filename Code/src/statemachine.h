@@ -47,15 +47,20 @@ StateMachine<GlobalState>::StateMachine(GlobalState globalState)
 template <class GlobalState>
 void StateMachine<GlobalState>::execute()
 {
-  for (unsigned int i = 0; i < _transitions.size(); ++i)
+  for (unsigned int i = 0; i < _transitions.size(); ++i){
+    Serial.print("state: ");
+    Serial.println((unsigned int) _state);
+    Serial.print("from state: ");
+    Serial.println((unsigned int) _transitions.at(i).fromState());
     if (_transitions.at(i).fromState() == _state && _transitions.at(i).isTriggered(&_globalState)) {
       Serial.print("from: ");
       Serial.print((unsigned int) _state);
       _state = _transitions.at(i).toState();
-      Serial.print("to: ");
-      Serial.print((unsigned int) _state);
+      Serial.print(" to: ");
+      Serial.println((unsigned int) _state);
       _transitions.at(i).execute(&_globalState);
-    }
+      break;
+    }}
   _state->execute(&_globalState);
 }
 
@@ -64,7 +69,7 @@ const State<GlobalState>* StateMachine<GlobalState>::addState(void (*executeFunc
 {
   _states.push_back(State<GlobalState>(executeFunction));
   if (_state == 0)
-    _state = &_states.back();
+    _state = &_states.at(0);
   Serial.print("state: ");
   Serial.print((unsigned int) &_states.back());
   Serial.print(" exec: ");

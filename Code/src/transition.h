@@ -8,7 +8,7 @@ template <class GlobalState>
 class Transition
 {
 public:
-  Transition(const State<GlobalState>* toState, const State<GlobalState>* fromState,
+  Transition(const State<GlobalState>* fromState, const State<GlobalState>* toState,
              bool (*triggerFunction)(GlobalState*), void (*executeFunction)(GlobalState*));
 
   void execute(GlobalState* globalState);
@@ -24,7 +24,7 @@ private:
 };
 
 template <class GlobalState>
-Transition<GlobalState>::Transition(const State<GlobalState>* toState, const State<GlobalState>* fromState,
+Transition<GlobalState>::Transition(const State<GlobalState>* fromState, const State<GlobalState>* toState,
            bool (*triggerFunction)(GlobalState*), void (*executeFunction)(GlobalState*))
 : _executeFunction(executeFunction)
 , _triggerFunction(triggerFunction)
