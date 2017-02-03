@@ -20,7 +20,7 @@
 
 struct GlobalState
 {
-  std::string number;
+  String number;
   Mobile mobile;
   Fetap fetap;
 };
@@ -66,6 +66,8 @@ void processOutboundCall(GlobalState* globalState)
 {
   Serial.println("stateDialing->stateCall");
   globalState->mobile.setDialtone(false);
+  Serial.print("start Call: ");
+  Serial.println(globalState->number);
   globalState->mobile.startCall(globalState->number);
 }
 

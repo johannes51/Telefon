@@ -4,11 +4,11 @@
 // std includes
 #include <StandardCplusplus.h>
 #include <vector>
+// lib includes
+#include "Arduino.h"
 // project includes
 #include "transition.h"
 #include "state.h"
-
-#include "Arduino.h"
 
 template <class GlobalState>
 class StateMachine

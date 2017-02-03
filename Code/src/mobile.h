@@ -1,9 +1,8 @@
 #ifndef MOBILE_H
 #define MOBILE_H
 
-// stl includes
-#include <string>
 // lib includes
+#include "Arduino.h"
 #include "Sim800l.h"
 
 /*!
@@ -22,7 +21,7 @@ public:
   bool isCalling();
 
   bool startCall();
-  bool startCall(const std::string& Number);
+  bool startCall(const String& Number);
   bool hangUp();
 
   void setDialtone(bool tone);

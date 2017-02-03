@@ -1,21 +1,20 @@
 // header include
 #include "fetap.h"
-// lib includes
-#include "Arduino.h"
 
-const unsigned long MaxDigitDelay = 4000;
+const unsigned long MaxDigitDelay = 6000;
 const unsigned short CradlePin = 6;
 const unsigned short NsaPin = 7;
 const unsigned short NsiPin = 8;
 const unsigned short RingerPin = 3;
+unsigned long DebounceDelay = 20;
 
 Fetap::Fetap()
 : _ringing(false)
 , _tone()
 {
   pinMode(CradlePin, INPUT_PULLUP);
-  pinMode(NsaPin, INPUT);
-  pinMode(NsiPin, INPUT);
+  pinMode(NsaPin, INPUT_PULLUP);
+  pinMode(NsiPin, INPUT_PULLUP);
   _tone.begin(RingerPin);
 }
 
@@ -53,14 +52,14 @@ bool Fetap::isUnhooked()
   return digitalRead(CradlePin) == LOW;
 }
 
-std::string Fetap::commenceDialing()
+String Fetap::commenceDialing()
 {
   _lastDigitMillis = millis();
-  std::string result;
+  String result;
   while (isUnhooked() && !isDoneDialing()) {
     if (isTurned()) {
       Serial.println("isturned");
-      result.push_back((char)('0' + listenForDigit()));
+      result += (char)('0' + listenForDigit());
       _lastDigitMillis = millis();
     }
   }
@@ -69,8 +68,26 @@ std::string Fetap::commenceDialing()
 
 int Fetap::listenForDigit()
 {
-  // MEGA SCHEISSE!
-  return 0;
+  int result = 0;
+  unsigned long lastDebounceTime = 0;
+  int buttonState = HIGH;
+  delay(10);
+  while (isTurned()) {
+    int reading = digitalRead(NsiPin);
+    if (lastDebounceTime + DebounceDelay < millis())
+      if (reading != buttonState) {
+        lastDebounceTime = millis();
+        buttonState = reading;
+        if (buttonState == HIGH)
+          ++result;
+      }
+  }
+  Serial.println(result);
+  if (result == 10)
+    result = 0;
+  else if (result < 1 || result > 10)
+    result = -1;
+  return result;
 }
 
 bool Fetap::isDoneDialing()

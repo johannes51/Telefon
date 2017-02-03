@@ -1,8 +1,8 @@
 #ifndef FETAP_H
 #define FETAP_H
 
-#include <string>
-
+// lib includes
+#include "Arduino.h"
 #include "Tone.h"
 
 /*!
@@ -22,7 +22,7 @@ public:
 
   bool isUnhooked();
 
-  std::string commenceDialing();
+  String commenceDialing();
 private:
   int listenForDigit();
   bool isDoneDialing();

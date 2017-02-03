@@ -20,7 +20,7 @@ Mobile::Mobile(const Mobile& lhs)
  */
 bool Mobile::isRinging()
 {
-  int cs=_sim800.getCallStatus();
+  int cs =_sim800.getCallStatus();
   Serial.print("callStatus ");
   Serial.println(cs);
   return cs == 3;
@@ -45,9 +45,11 @@ bool Mobile::startCall()
  * \param Number Number as a null-terminated string.
  * \return Wether the command was successful.
  */
-bool Mobile::startCall(const std::string& Number)
+bool Mobile::startCall(const String& Number)
 {
-  return "bla";//_sim800.callNumber(Number.c_str());
+  //if (Number == "4")
+    return _sim800.callNumber(Number.c_str());
+  //else return false;
 }
 
 /*!
@@ -61,8 +63,8 @@ bool Mobile::hangUp()
 
 void Mobile::setDialtone(bool tone)
 {
-  std::string duration = tone ? "15300000" : "10";
-  _sim800.sendCommand(std::string(AT_TONE).append(duration).c_str());
+  String duration = tone ? "15300000" : "10";
+  _sim800.sendCommand(String(String(AT_TONE) += duration).c_str());
 }
 
 void Mobile::setHangupTone(bool tone)

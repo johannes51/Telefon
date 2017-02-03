@@ -38,7 +38,7 @@ Sim800l::Sim800l()
 void Sim800l::begin()
 {
 	Serial.println("begin");
-	SIM.begin(9600);
+	SIM.begin(115200);
   #if (LED)
     pinMode(OUTPUT,LED_PIN);
   #endif
@@ -145,7 +145,7 @@ bool  Sim800l::callNumber(const char* number)
 {
   SIM.print (F("ATD"));
   SIM.print (number);
-  SIM.print (F("\r\n"));
+  SIM.print (F(";\r\n"));
 	_buffer=_readSerial();
 	//Response in case of data call, if successfully connected
 	if ( (_buffer.indexOf("OK") )!=-1 ) return true;
