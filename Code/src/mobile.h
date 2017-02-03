@@ -16,6 +16,7 @@ class Mobile
 {
 public:
   Mobile();
+  Mobile(const Mobile& lhs);
 
   bool isRinging();
   bool isCalling();

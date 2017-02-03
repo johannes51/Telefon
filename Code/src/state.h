@@ -8,8 +8,8 @@ public:
   State(void (*executeFunction)(GlobalState*));
 
   void execute(GlobalState* globalState);
+  void (*_executeFunction)(GlobalState*);
 private:
-    void (*_executeFunction)(GlobalState*);
 };
 
 template <class GlobalState>

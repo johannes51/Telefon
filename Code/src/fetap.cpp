@@ -11,12 +11,12 @@ const unsigned short RingerPin = 3;
 
 Fetap::Fetap()
 : _ringing(false)
-{/*
-  pinMode(CradlePin, INPUT);
+, _tone()
+{
+  pinMode(CradlePin, INPUT_PULLUP);
   pinMode(NsaPin, INPUT);
   pinMode(NsiPin, INPUT);
-  pinMode(RingerPin, OUTPUT);
-  digitalWrite(RingerPin, LOW);*/
+  _tone.begin(RingerPin);
 }
 
 /*!
@@ -25,9 +25,13 @@ Fetap::Fetap()
 */
 void Fetap::setRinger(bool ring)
 {
-  unsigned short level = ring ? HIGH : LOW;
-  digitalWrite(RingerPin, level);
-  digitalWrite(13, level);
+  if (ring) {
+    _tone.play(10);
+    digitalWrite(13, HIGH);
+  } else {
+    _tone.play(10, 10);
+    digitalWrite(13, LOW);
+  }
   _ringing = ring;
 }
 
@@ -55,6 +59,7 @@ std::string Fetap::commenceDialing()
   std::string result;
   while (isUnhooked() && !isDoneDialing()) {
     if (isTurned()) {
+      Serial.println("isturned");
       result.push_back((char)('0' + listenForDigit()));
       _lastDigitMillis = millis();
     }

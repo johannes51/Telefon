@@ -9,6 +9,11 @@ Mobile::Mobile()
   _sim800.sendCommand(AT_RINGER_OFF, true);
 }
 
+Mobile::Mobile(const Mobile& lhs)
+{
+  Serial.print("Mobile(const Mobile& lhs)");
+}
+
 /*!
 * \brief Check for phone ringing.
  * \return Wether the phone is currently ringing (true) or not (false).
@@ -16,6 +21,8 @@ Mobile::Mobile()
 bool Mobile::isRinging()
 {
   int cs=_sim800.getCallStatus();
+  Serial.print("callStatus ");
+  Serial.println(cs);
   return cs == 3;
 }
 
@@ -40,7 +47,7 @@ bool Mobile::startCall()
  */
 bool Mobile::startCall(const std::string& Number)
 {
-  return _sim800.callNumber(Number.c_str());
+  return "bla";//_sim800.callNumber(Number.c_str());
 }
 
 /*!

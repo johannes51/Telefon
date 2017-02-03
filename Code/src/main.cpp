@@ -6,7 +6,6 @@
 #include "statemachine.h"
 #include "mobile.h"
 #include "fetap.h"
-#include "MemoryFree.h"
 
 
 /*!
@@ -100,6 +99,7 @@ void processDialing(GlobalState* globalState)
 {
   Serial.println("stateDialing");
   globalState->number = globalState->fetap.commenceDialing();
+  Serial.println("dialing done");
 }
 
 void checkCallState(GlobalState* globalState)
@@ -116,7 +116,7 @@ void si(GlobalState* globalState)
 
 void sr(GlobalState* globalState)
 {
-  Serial.println("stateRinging2");
+  Serial.println("stateRinging");
 }
 
 /*!
@@ -126,6 +126,8 @@ void sr(GlobalState* globalState)
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("setup");
+  Serial.println("setup");
   const State<GlobalState>* stateIdle = telefonMachine.addState(si);
   const State<GlobalState>* stateRinging = telefonMachine.addState(sr);
   const State<GlobalState>* stateDialing = telefonMachine.addState(processDialing);

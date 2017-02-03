@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "Tone.h"
+
 /*!
  * \file fetap.h
  * \brief A class to interact with the analog telephone.
@@ -29,6 +31,7 @@ private:
 
   unsigned long _lastDigitMillis;
   bool _ringing;
+  Tone _tone;
 };
 
 #endif

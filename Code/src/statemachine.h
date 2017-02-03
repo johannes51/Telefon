@@ -55,7 +55,7 @@ void StateMachine<GlobalState>::execute()
     if (_transitions.at(i).fromState() == _state && _transitions.at(i).isTriggered(&_globalState)) {
       Serial.print("from: ");
       Serial.print((unsigned int) _state);
-      _state = _transitions.at(i).toState();
+      _state = const_cast<State<GlobalState>*>(_transitions.at(i).toState());
       Serial.print(" to: ");
       Serial.println((unsigned int) _state);
       _transitions.at(i).execute(&_globalState);

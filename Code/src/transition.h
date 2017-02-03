@@ -20,7 +20,7 @@ private:
   void (*_executeFunction)(GlobalState*);
   bool (*_triggerFunction)(GlobalState*);
   const State<GlobalState>* _fromState;
-  State<GlobalState>* _toState;
+  const State<GlobalState>* _toState;
 };
 
 template <class GlobalState>
