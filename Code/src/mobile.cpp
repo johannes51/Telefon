@@ -1,6 +1,7 @@
 // header include
 #include "mobile.h"
 
+#include <avr/power.h>
 #include <SIM800.h>
 
 bool interruptedB;
@@ -8,21 +9,22 @@ bool interruptedB;
 void interrupted()
 {
   interruptedB = true;
+  detachInterrupt(digitalPinToInterrupt(2));
 }
 
 Mobile::Mobile()
 : sleepingBuffer_(true)
 {
-  SIM.begin();
   wakeSim();
   SIM.alertMode(CmdType::SET, "1");
   pinMode(2, INPUT);
-  attachInterrupt(digitalPinToInterrupt(2), interrupted, FALLING);
 }
 
 Mobile::~Mobile()
 {
-  detachInterrupt(digitalPinToInterrupt(2));
+  if (!interruptedB) {
+    detachInterrupt(digitalPinToInterrupt(2));
+  }
 }
 
 /*!
@@ -45,9 +47,7 @@ bool Mobile::isCalling()
 
 void Mobile::startCall()
 {
-  if (isSleeping()) {
-    wakeSim();
-  }
+  wakeSim();
   SIM.answerCall();
 }
 
@@ -58,9 +58,7 @@ void Mobile::startCall()
  */
 void Mobile::startCall(String& Number)
 {
-  if (isSleeping()) {
-    wakeSim();
-  }
+  wakeSim();
   Number += ";";
   SIM.originCall(Number.c_str());
   Serial.println(SIM.getBuffer());
@@ -72,17 +70,13 @@ void Mobile::startCall(String& Number)
  */
  void Mobile::hangUp()
 {
-  if (isSleeping()) {
-    wakeSim();
-  }
+  wakeSim();
   SIM.endCall();
 }
 
 void Mobile::setDialtone(bool tone)
 {
-  if (isSleeping()) {
-    wakeSim();
-  }
+  wakeSim();
   String params;
   if (tone) {
     params = AT_DIAL_TONE;
@@ -94,9 +88,7 @@ void Mobile::setDialtone(bool tone)
 
 void Mobile::setHangupTone(bool tone)
 {
-  if (isSleeping()) {
-    wakeSim();
-  }
+  wakeSim();
   String params;
   if (tone) {
     params = AT_BUSY_TONE;
@@ -111,6 +103,9 @@ void Mobile::sleepSim()
   if (!sleepingBuffer_) {
     Serial.println(F("sleepSim"));
     // this is where we would send the commands to do that and then set
+    SIM.end();
+    // power_usart0_disable(); once we use HW Serial
+    attachInterrupt(digitalPinToInterrupt(2), interrupted, FALLING);
     sleepingBuffer_ = true;
   }
 }
@@ -151,6 +146,8 @@ void Mobile::wakeSim()
 {
   if (sleepingBuffer_) {
     do {
+      // power_usart0_enable(); once we use HW Serial
+      SIM.begin();
       SIM.test();
       while (SIM.reply("TIMEOUT")) {
         delay(10);

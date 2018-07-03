@@ -1,10 +1,6 @@
 // header include
 #include "fetap.h"
 
-void cradleMoved()
-{
-}
-
 bool finishedRinging(RingerState* ringerState)
 {
   unsigned long ringTime;
@@ -59,7 +55,6 @@ void ringOff(RingerState* ringerState)
 Fetap::Fetap()
 {
   pinMode(CradlePin, INPUT_PULLUP);
-  attachInterrupt(CradlePin, cradleMoved, FALLING);
   pinMode(NsaPin, INPUT_PULLUP);
   pinMode(NsiPin, INPUT_PULLUP);
 
@@ -74,11 +69,6 @@ Fetap::Fetap()
   ringer_.addTransition(statePause1, stateRing2, finishedPausing, ringOn);
   ringer_.addTransition(stateRing2, statePause2, finishedRinging, ringOff);
   ringer_.addTransition(statePause2, stateRing1, finishedPausing, startRinging);
-}
-
-Fetap::~Fetap()
-{
-  detachInterrupt(CradlePin);
 }
 
 /*!

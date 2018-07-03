@@ -33,7 +33,6 @@ class Fetap
 {
 public:
   Fetap();
-  ~Fetap();
 
   void ring();
   void stopRinging();
