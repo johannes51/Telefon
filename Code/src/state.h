@@ -21,7 +21,7 @@ State<GlobalState>::State(void (*executeFunction)(GlobalState*))
 template <class GlobalState>
 void State<GlobalState>::execute(GlobalState* globalState)
 {
-  if (_executeFunction != 0)
+  if (_executeFunction != nullptr)
     _executeFunction(globalState);
 }
 

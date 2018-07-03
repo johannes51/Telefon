@@ -1,37 +1,98 @@
 // header include
 #include "fetap.h"
 
-const unsigned long MaxDigitDelay = 6000;
-const unsigned short CradlePin = 6;
-const unsigned short NsaPin = 7;
-const unsigned short NsiPin = 8;
-const unsigned short RingerPin = 3;
-unsigned long DebounceDelay = 20;
+void cradleMoved()
+{
+}
+
+bool finishedRinging(RingerState* ringerState)
+{
+  unsigned long ringTime;
+  switch (ringerState->ringsPlayed) {
+    case 0:
+      ringTime = 1000;
+      break;
+    case 1:
+    default:
+      ringTime = 300;
+      break;
+  }
+  if (ringerState->tranisitionTime + ringTime < millis()) {
+    ++ringerState->ringsPlayed;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool finishedPausing(RingerState* ringerState)
+{
+  unsigned long pauseTime;
+  switch (ringerState->ringsPlayed) {
+    case 1:
+      pauseTime = 250;
+      break;
+    case 2:
+    default:
+      pauseTime = 3000;
+      break;
+  }
+  return (ringerState->tranisitionTime + pauseTime < millis());
+}
+
+void startRinging(RingerState* ringerState)
+{
+  ringerState->tone.play(10);
+  ringerState->ringsPlayed = 0;
+}
+
+void ringOn(RingerState* ringerState)
+{
+  ringerState->tone.play(10);
+}
+
+void ringOff(RingerState* ringerState)
+{
+  ringerState->tone.stop();
+}
 
 Fetap::Fetap()
-: _ringing(false)
-, _tone()
 {
   pinMode(CradlePin, INPUT_PULLUP);
+  attachInterrupt(CradlePin, cradleMoved, FALLING);
   pinMode(NsaPin, INPUT_PULLUP);
   pinMode(NsiPin, INPUT_PULLUP);
-  _tone.begin(RingerPin);
+
+  stopState_ = ringer_.addState();
+  auto stateRing1 = ringer_.addState();
+  auto stateRing2 = ringer_.addState();
+  auto statePause1 = ringer_.addState();
+  auto statePause2 = ringer_.addState();
+
+  ringer_.addTransition(stopState_, stateRing1, nullptr, startRinging);
+  ringer_.addTransition(stateRing1, statePause1, finishedRinging, ringOff);
+  ringer_.addTransition(statePause1, stateRing2, finishedPausing, ringOn);
+  ringer_.addTransition(stateRing2, statePause2, finishedRinging, ringOff);
+  ringer_.addTransition(statePause2, stateRing1, finishedPausing, startRinging);
+}
+
+Fetap::~Fetap()
+{
+  detachInterrupt(CradlePin);
 }
 
 /*!
 * \brief Set the ringer status.
 * \param Status to set it to (true for ringing, false for silent).
 */
-void Fetap::setRinger(bool ring)
-{
-  if (ring) {
-    _tone.play(10);
-    digitalWrite(13, HIGH);
-  } else {
-    _tone.play(10, 10);
-    digitalWrite(13, LOW);
-  }
-  _ringing = ring;
+void Fetap::ring() {
+  ringer_.execute();
+  digitalWrite(13, HIGH);
+}
+
+void Fetap::stopRinging(){
+  ringer_.setState(stopState_);
+  digitalWrite(13, LOW);
 }
 
 /*!
@@ -40,7 +101,7 @@ void Fetap::setRinger(bool ring)
  */
 bool Fetap::isRinging()
 {
-  return _ringing;
+  return ringer_.getState() != stopState_;
 }
 
 /*!
@@ -54,13 +115,18 @@ bool Fetap::isUnhooked()
 
 String Fetap::commenceDialing()
 {
-  _lastDigitMillis = millis();
+  lastDigitMillis_ = millis();
   String result;
   while (isUnhooked() && !isDoneDialing()) {
     if (isTurned()) {
       Serial.println("isturned");
-      result += (char)('0' + listenForDigit());
-      _lastDigitMillis = millis();
+      auto digit = listenForDigit();
+      if (digit >= 0) {
+        result += (char)('0' + digit);
+      }
+      lastDigitMillis_ = millis();
+      Serial.print("Nummer: ");
+      Serial.println(result);
     }
   }
   return result;
@@ -74,7 +140,7 @@ int Fetap::listenForDigit()
   delay(10);
   while (isTurned()) {
     int reading = digitalRead(NsiPin);
-    if (lastDebounceTime + DebounceDelay < millis())
+    if (lastDebounceTime + NsiDebounceDelay < millis())
       if (reading != buttonState) {
         lastDebounceTime = millis();
         buttonState = reading;
@@ -82,7 +148,6 @@ int Fetap::listenForDigit()
           ++result;
       }
   }
-  Serial.println(result);
   if (result == 10)
     result = 0;
   else if (result < 1 || result > 10)
@@ -92,7 +157,7 @@ int Fetap::listenForDigit()
 
 bool Fetap::isDoneDialing()
 {
-  return (millis() > _lastDigitMillis + MaxDigitDelay);
+  return (millis() > lastDigitMillis_ + MaxDigitDelay);
 }
 
 bool Fetap::isTurned()

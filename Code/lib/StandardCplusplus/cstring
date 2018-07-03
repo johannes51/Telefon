@@ -57,19 +57,19 @@ namespace std{
 		return memchr(const_cast<const void *>(s), c, n);
 	}
 
-	inline char* strchr(char* s, int c){
+	inline const char* strchr(char* s, int c){
 		return strchr(const_cast<const char *>(s), c);
 	}
 
-	inline char* strpbrk(char* s1, const char* s2){
+	inline const char* strpbrk(char* s1, const char* s2){
 		return strpbrk(const_cast<const char *>(s1), s2);
 	}
 
-	inline char* strrchr(char* s, int c){
+	inline const char* strrchr(char* s, int c){
 		return strrchr(const_cast<const char *>(s), c);
 	}
 
-	inline char* strstr(char* s1, const char* s2){
+	inline const char* strstr(char* s1, const char* s2){
 		return strstr(const_cast<const char *>(s1), s2);
 	}
 #endif

@@ -36,14 +36,18 @@ Transition<GlobalState>::Transition(const State<GlobalState>* fromState, const S
 template <class GlobalState>
 void Transition<GlobalState>::execute(GlobalState* globalState)
 {
-  if (_executeFunction != 0)
+  if (_executeFunction != nullptr)
     _executeFunction(globalState);
 }
 
 template <class GlobalState>
 bool Transition<GlobalState>::isTriggered(GlobalState* globalState)
 {
-  return _triggerFunction(globalState);
+  if (_triggerFunction == nullptr) {
+    return true;
+  } else {
+    return _triggerFunction(globalState);
+  }
 }
 
 template <class GlobalState>

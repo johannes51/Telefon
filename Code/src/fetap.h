@@ -2,8 +2,25 @@
 #define FETAP_H
 
 // lib includes
-#include "Arduino.h"
-#include "Tone.h"
+#include <Arduino.h>
+#include <Tone.h>
+
+#include "statemachine.h"
+
+const unsigned long MaxDigitDelay = 6000;
+const unsigned short CradlePin = 3;
+const unsigned short NsaPin = 8;
+const unsigned short NsiPin = 9;
+const unsigned short RingerPin = 16;
+const unsigned long NsiDebounceDelay = 20;
+
+struct RingerState
+{
+  RingerState() { tone.begin(RingerPin); }
+  uint8_t ringsPlayed = 0;
+  unsigned long tranisitionTime;
+  Tone tone;
+};
 
 /*!
  * \file fetap.h
@@ -16,8 +33,10 @@ class Fetap
 {
 public:
   Fetap();
+  ~Fetap();
 
-  void setRinger(bool ring);
+  void ring();
+  void stopRinging();
   bool isRinging();
 
   bool isUnhooked();
@@ -29,9 +48,10 @@ private:
 
   bool isTurned();
 
-  unsigned long _lastDigitMillis;
-  bool _ringing;
-  Tone _tone;
+  unsigned long lastDigitMillis_;
+
+  StateMachine<RingerState> ringer_;
+  const State<RingerState>* stopState_;
 };
 
 #endif

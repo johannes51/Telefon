@@ -19,28 +19,36 @@ public:
 
   void execute();
 
-  const State<GlobalState>* addState(void (*executeFunction)(GlobalState*) = 0);
-  void addTransition(const State<GlobalState>* fromState, const State<GlobalState>* toState,
-                     bool (*triggerFunction)(GlobalState*), void (*executeFunction)(GlobalState*) = 0);
+  const State<GlobalState>* getState() const;
+  void setState(const State<GlobalState>*);
+
+  const GlobalState& globalState() const;
+
+  const State<GlobalState>* addState(void (*executeFunction)(GlobalState*) = nullptr);
+  void addTransition(const State<GlobalState>* fromState,
+                     const State<GlobalState>* toState,
+                     bool (*triggerFunction)(GlobalState*) = nullptr,
+                     void (*executeFunction)(GlobalState*) = nullptr);
 
 private:
+  GlobalState _globalState;
+
   std::vector<State<GlobalState> > _states;
   State<GlobalState>* _state;
   std::vector<Transition<GlobalState> > _transitions;
-  GlobalState _globalState;
 };
 
 template <class GlobalState>
 StateMachine<GlobalState>::StateMachine()
-: _state(0)
-, _globalState()
+: _globalState()
+, _state(0)
 {
 }
 
 template <class GlobalState>
 StateMachine<GlobalState>::StateMachine(GlobalState globalState)
-: _state(0)
-, _globalState(globalState)
+: _globalState(globalState)
+, _state(0)
 {
 }
 
@@ -48,20 +56,29 @@ template <class GlobalState>
 void StateMachine<GlobalState>::execute()
 {
   for (unsigned int i = 0; i < _transitions.size(); ++i){
-    Serial.print("state: ");
-    Serial.println((unsigned int) _state);
-    Serial.print("from state: ");
-    Serial.println((unsigned int) _transitions.at(i).fromState());
     if (_transitions.at(i).fromState() == _state && _transitions.at(i).isTriggered(&_globalState)) {
-      Serial.print("from: ");
-      Serial.print((unsigned int) _state);
       _state = const_cast<State<GlobalState>*>(_transitions.at(i).toState());
-      Serial.print(" to: ");
-      Serial.println((unsigned int) _state);
       _transitions.at(i).execute(&_globalState);
       break;
     }}
   _state->execute(&_globalState);
+}
+
+template <class GlobalState>
+const State<GlobalState>* StateMachine<GlobalState>::getState() const
+{
+  return _state;
+}
+
+template <class GlobalState>
+void StateMachine<GlobalState>::setState(const State<GlobalState>* newState)
+{
+  for (auto state : _states) {
+    if (newState == &state) {
+      _state = &state;
+      break;
+    }
+  }
 }
 
 template <class GlobalState>
@@ -70,10 +87,6 @@ const State<GlobalState>* StateMachine<GlobalState>::addState(void (*executeFunc
   _states.push_back(State<GlobalState>(executeFunction));
   if (_state == 0)
     _state = &_states.at(0);
-  Serial.print("state: ");
-  Serial.print((unsigned int) &_states.back());
-  Serial.print(" exec: ");
-  Serial.println((unsigned int) executeFunction);
   return &_states.back();
 }
 
@@ -81,11 +94,7 @@ template <class GlobalState>
 void StateMachine<GlobalState>::addTransition(const State<GlobalState>* fromState, const State<GlobalState>* toState,
                    bool (*triggerFunction)(GlobalState*), void (*executeFunction)(GlobalState*))
 {
-  Serial.print("trans: ");
-  Serial.print((unsigned int) fromState);Serial.print(" ");
-  Serial.print((unsigned int) toState);Serial.print(" ");
   _transitions.push_back(Transition<GlobalState>(fromState, toState, triggerFunction, executeFunction));
-  Serial.println((unsigned int) &_transitions.back());
 }
 
 #endif

@@ -1,9 +1,10 @@
 #ifndef MOBILE_H
 #define MOBILE_H
 
-// lib includes
-#include "Arduino.h"
-#include "Sim800l.h"
+#include <Arduino.h>
+
+#define RX_PIN 19
+#define TX_PIN 18
 
 /*!
  * \file mobile.h
@@ -11,29 +12,44 @@
  *
  * Functions for sending commands and receiving data from the phone */
 
+class ThreadController;
+
 class Mobile
 {
 public:
+  enum class CallStatus {
+    Idle,
+    Ringing,
+    Call,
+  };
+
   Mobile();
-  Mobile(const Mobile& lhs);
+  ~Mobile();
 
   bool isRinging();
   bool isCalling();
+  bool isSleeping();
 
-  bool startCall();
-  bool startCall(const String& Number);
-  bool hangUp();
+  void startCall();
+  void startCall(String& Number);
+  void hangUp();
 
   void setDialtone(bool tone);
   void setHangupTone(bool tone);
+
+  void sleepSim();
+
 private:
-  Sim800l _sim800;
+  CallStatus getCs();
+  void wakeSim();
+
+  CallStatus callStatus_;
+  bool sleepingBuffer_; // use isSleeping()
 };
 
 /** Query for network status */
-#define AT_AT "AT"
-#define AT_NETSTAT "AT+COPS"
-#define AT_TONE "AT+STTONE=1,1,"
-#define AT_RINGER_OFF "AT+CALM=1"
+#define AT_DIAL_TONE "1,1,15300000"
+#define AT_BUSY_TONE "1,2,15300000"
+#define AT_NO_TONE "0"
 
 #endif

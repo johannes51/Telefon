@@ -1,17 +1,28 @@
 // header include
 #include "mobile.h"
 
-Mobile::Mobile()
+#include <SIM800.h>
+
+bool interruptedB;
+
+void interrupted()
 {
-  _sim800.begin();
-  _sim800.sendCommand(AT_AT, true);
-  _sim800.sendCommand(AT_AT, true);
-  _sim800.sendCommand(AT_RINGER_OFF, true);
+  interruptedB = true;
 }
 
-Mobile::Mobile(const Mobile& lhs)
+Mobile::Mobile()
+: sleepingBuffer_(true)
 {
-  Serial.print("Mobile(const Mobile& lhs)");
+  SIM.begin();
+  wakeSim();
+  SIM.alertMode(CmdType::SET, "1");
+  pinMode(2, INPUT);
+  attachInterrupt(digitalPinToInterrupt(2), interrupted, FALLING);
+}
+
+Mobile::~Mobile()
+{
+  detachInterrupt(digitalPinToInterrupt(2));
 }
 
 /*!
@@ -20,10 +31,7 @@ Mobile::Mobile(const Mobile& lhs)
  */
 bool Mobile::isRinging()
 {
-  int cs =_sim800.getCallStatus();
-  Serial.print("callStatus ");
-  Serial.println(cs);
-  return cs == 3;
+  return getCs() == CallStatus::Ringing;
 }
 
 /*!
@@ -32,12 +40,15 @@ bool Mobile::isRinging()
  */
 bool Mobile::isCalling()
 {
-  return _sim800.getCallStatus() == 4;
+  return getCs() == CallStatus::Call;
 }
 
-bool Mobile::startCall()
+void Mobile::startCall()
 {
-  return _sim800.answerCall();
+  if (isSleeping()) {
+    wakeSim();
+  }
+  SIM.answerCall();
 }
 
 /*!
@@ -45,28 +56,107 @@ bool Mobile::startCall()
  * \param Number Number as a null-terminated string.
  * \return Wether the command was successful.
  */
-bool Mobile::startCall(const String& Number)
+void Mobile::startCall(String& Number)
 {
-  //if (Number == "4")
-    return _sim800.callNumber(Number.c_str());
-  //else return false;
+  if (isSleeping()) {
+    wakeSim();
+  }
+  Number += ";";
+  SIM.originCall(Number.c_str());
+  Serial.println(SIM.getBuffer());
 }
 
 /*!
  * \brief Have the phone hang up.
  * \return Wether the command was successful.
  */
-bool Mobile::hangUp()
+ void Mobile::hangUp()
 {
-  return _sim800.hangoffCall();
+  if (isSleeping()) {
+    wakeSim();
+  }
+  SIM.endCall();
 }
 
 void Mobile::setDialtone(bool tone)
 {
-  String duration = tone ? "15300000" : "10";
-  _sim800.sendCommand(String(String(AT_TONE) += duration).c_str());
+  if (isSleeping()) {
+    wakeSim();
+  }
+  String params;
+  if (tone) {
+    params = AT_DIAL_TONE;
+  } else {
+    params = AT_NO_TONE;
+  }
+  SIM.stkPlayTone(CmdType::SET, params.c_str());
 }
 
 void Mobile::setHangupTone(bool tone)
 {
+  if (isSleeping()) {
+    wakeSim();
+  }
+  String params;
+  if (tone) {
+    params = AT_BUSY_TONE;
+  } else {
+    params = AT_NO_TONE;
+  }
+  SIM.stkPlayTone(CmdType::SET, params.c_str());
+}
+
+void Mobile::sleepSim()
+{
+  if (!sleepingBuffer_) {
+    Serial.println(F("sleepSim"));
+    // this is where we would send the commands to do that and then set
+    sleepingBuffer_ = true;
+  }
+}
+
+Mobile::CallStatus Mobile::getCs()
+{
+  if (!isSleeping()) {
+    SIM.activity(CmdType::EXE);
+    auto reply = String(SIM.getBuffer());
+    auto cs = reply.substring(reply.indexOf("+CPAS: ") + 7,
+                              reply.indexOf("+CPAS: ") + 9).toInt();
+    switch (cs) {
+      case 0:
+      default:
+        callStatus_ = CallStatus::Idle;
+        break;
+      case 3:
+        callStatus_ = CallStatus::Ringing;
+        break;
+      case 4:
+        callStatus_ = CallStatus::Call;
+        break;
+    }
+    interruptedB = false;
+  }
+  return callStatus_;
+}
+
+bool Mobile::isSleeping()
+{
+  if (interruptedB) {
+    wakeSim();
+  }
+  return sleepingBuffer_;
+}
+
+void Mobile::wakeSim()
+{
+  if (sleepingBuffer_) {
+    do {
+      SIM.test();
+      while (SIM.reply("TIMEOUT")) {
+        delay(10);
+      }
+    } while (!SIM.reply("OK"));
+    sleepingBuffer_ = false;
+    Serial.println(F("woke!"));
+  }
 }

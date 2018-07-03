@@ -22,7 +22,7 @@ const SimpleState* SimpleStateMachine::addState(void (*executeFunction)())
 void SimpleStateMachine::addTransition(const SimpleState* fromState, const SimpleState* toState,
                    bool (*triggerFunction)(), void (*executeFunction)())
 {
-  _sm._transitions.push_back(Transition<bool>(fromState, toState, triggerFunction, executeFunction));
+  _sm.addTransition(fromState, toState, triggerFunction, executeFunction);
 }
 
 void SimpleStateMachine::stateExecutor(const bool* globalState)
@@ -33,7 +33,7 @@ void SimpleStateMachine::stateExecutor(const bool* globalState)
 
 void SimpleStateMachine::transitionExecutor(const bool* globalState)
 {
-  void (*executeFunction)() = (_sm._state]);
+  void (*executeFunction)() = (_stateExecuteFunctionMap[_sm._state]);
   executeFunction();
 }
 

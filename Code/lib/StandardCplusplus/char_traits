@@ -71,7 +71,7 @@ namespace std{
 		}
 
 		inline static char_type* move(char_type* s1, const char_type* s2, size_t n){
-			return (char*) memmove(s1, s2, n);
+			return (const char*) memmove(s1, s2, n);
 		}
 
 		inline static char_type* copy(char_type* s1, const char_type* s2, size_t n){
