@@ -1,56 +1,9 @@
 // header include
 #include "fetap.h"
 
-bool finishedRinging(RingerState* ringerState)
-{
-  unsigned long ringTime;
-  switch (ringerState->ringsPlayed) {
-    case 0:
-      ringTime = 1000;
-      break;
-    case 1:
-    default:
-      ringTime = 300;
-      break;
-  }
-  if (ringerState->tranisitionTime + ringTime < millis()) {
-    ++ringerState->ringsPlayed;
-    return true;
-  } else {
-    return false;
-  }
-}
+#include <avr/power.h>
 
-bool finishedPausing(RingerState* ringerState)
-{
-  unsigned long pauseTime;
-  switch (ringerState->ringsPlayed) {
-    case 1:
-      pauseTime = 250;
-      break;
-    case 2:
-    default:
-      pauseTime = 3000;
-      break;
-  }
-  return (ringerState->tranisitionTime + pauseTime < millis());
-}
-
-void startRinging(RingerState* ringerState)
-{
-  ringerState->tone.play(10);
-  ringerState->ringsPlayed = 0;
-}
-
-void ringOn(RingerState* ringerState)
-{
-  ringerState->tone.play(10);
-}
-
-void ringOff(RingerState* ringerState)
-{
-  ringerState->tone.stop();
-}
+#include "RingerMachine.h"
 
 Fetap::Fetap()
 {
@@ -58,17 +11,7 @@ Fetap::Fetap()
   pinMode(NsaPin, INPUT_PULLUP);
   pinMode(NsiPin, INPUT_PULLUP);
 
-  stopState_ = ringer_.addState();
-  auto stateRing1 = ringer_.addState();
-  auto stateRing2 = ringer_.addState();
-  auto statePause1 = ringer_.addState();
-  auto statePause2 = ringer_.addState();
-
-  ringer_.addTransition(stopState_, stateRing1, nullptr, startRinging);
-  ringer_.addTransition(stateRing1, statePause1, finishedRinging, ringOff);
-  ringer_.addTransition(statePause1, stateRing2, finishedPausing, ringOn);
-  ringer_.addTransition(stateRing2, statePause2, finishedRinging, ringOff);
-  ringer_.addTransition(statePause2, stateRing1, finishedPausing, startRinging);
+  stopState_ = setupRingerMachine(ringer_);
 }
 
 /*!
@@ -82,6 +25,7 @@ void Fetap::ring() {
 
 void Fetap::stopRinging(){
   ringer_.setState(stopState_);
+  power_timer2_disable();
   digitalWrite(13, LOW);
 }
 

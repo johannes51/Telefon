@@ -22,11 +22,12 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println(F(""));
+  Serial.println(F("start setup"));
   power_adc_disable(); //should not do anything
   power_timer1_disable(); // this is probably not used
-  // power_timer2_disable(); // this is probably used by Tone
   // power_spi_disable(); // this might be used by the ISP, neccessary?
   power_twi_disable(); // used by noone, probably disable
+  Serial.println(F("setup TelefonMachine"));
   setupTelefonMachine();
   Serial.println(F("setup done"));
 }

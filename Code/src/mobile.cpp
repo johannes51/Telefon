@@ -4,26 +4,27 @@
 #include <avr/power.h>
 #include <SIM800.h>
 
-bool interruptedB;
+/** Query for network status */
+#define AT_DIAL_TONE "1,1,15300000"
+#define AT_BUSY_TONE "1,3,15300000"
+#define AT_NO_TONE "0"
 
-void interrupted()
-{
-  interruptedB = true;
-  detachInterrupt(digitalPinToInterrupt(2));
-}
+bool Mobile::interruptedB = true;
 
 Mobile::Mobile()
 : sleepingBuffer_(true)
 {
+  pinMode(dtrPin, OUTPUT);
   wakeSim();
   SIM.alertMode(CmdType::SET, "1");
-  pinMode(2, INPUT);
+  SIM.slowClock(CmdType::SET, "1");
+  pinMode(ringPin, INPUT);
 }
 
 Mobile::~Mobile()
 {
   if (!interruptedB) {
-    detachInterrupt(digitalPinToInterrupt(2));
+    detachInterrupt(digitalPinToInterrupt(ringPin));
   }
 }
 
@@ -61,6 +62,7 @@ void Mobile::startCall(String& Number)
   wakeSim();
   Number += ";";
   SIM.originCall(Number.c_str());
+  Serial.print(F("Call reply: "));
   Serial.println(SIM.getBuffer());
 }
 
@@ -71,7 +73,9 @@ void Mobile::startCall(String& Number)
  void Mobile::hangUp()
 {
   wakeSim();
-  SIM.endCall();
+  do {
+    SIM.endCall();
+  } while (!SIM.reply("OK"));
 }
 
 void Mobile::setDialtone(bool tone)
@@ -83,7 +87,11 @@ void Mobile::setDialtone(bool tone)
   } else {
     params = AT_NO_TONE;
   }
-  SIM.stkPlayTone(CmdType::SET, params.c_str());
+  do {
+    SIM.stkPlayTone(CmdType::SET, params.c_str());
+  } while (!SIM.reply("OK"));
+  Serial.print(F("dial reply: "));
+  Serial.println(SIM.getBuffer());
 }
 
 void Mobile::setHangupTone(bool tone)
@@ -95,14 +103,18 @@ void Mobile::setHangupTone(bool tone)
   } else {
     params = AT_NO_TONE;
   }
-  SIM.stkPlayTone(CmdType::SET, params.c_str());
+  do {
+    SIM.stkPlayTone(CmdType::SET, params.c_str());
+  } while (!SIM.reply("OK"));
+  Serial.print(F("hangup reply: "));
+  Serial.println(SIM.getBuffer());
 }
 
 void Mobile::sleepSim()
 {
   if (!sleepingBuffer_) {
     Serial.println(F("sleepSim"));
-    // this is where we would send the commands to do that and then set
+    digitalWrite(dtrPin, HIGH);
     SIM.end();
     // power_usart0_disable(); once we use HW Serial
     attachInterrupt(digitalPinToInterrupt(2), interrupted, FALLING);
@@ -145,15 +157,19 @@ bool Mobile::isSleeping()
 void Mobile::wakeSim()
 {
   if (sleepingBuffer_) {
+    digitalWrite(dtrPin, LOW);
+    delay(50);
+    SIM.begin();
+    // power_usart0_enable(); once we use HW Serial
     do {
-      // power_usart0_enable(); once we use HW Serial
-      SIM.begin();
       SIM.test();
-      while (SIM.reply("TIMEOUT")) {
-        delay(10);
-      }
     } while (!SIM.reply("OK"));
     sleepingBuffer_ = false;
-    Serial.println(F("woke!"));
   }
+}
+
+void Mobile::interrupted()
+{
+  interruptedB = true;
+  detachInterrupt(digitalPinToInterrupt(ringPin));
 }

@@ -3,14 +3,14 @@
 
 #include <Arduino.h>
 
-#define RX_PIN 19
-#define TX_PIN 18
-
 /*!
  * \file mobile.h
  * \brief Logic interface with the mobile phone.
  *
  * Functions for sending commands and receiving data from the phone */
+
+const uint8_t ringPin = 2;
+const uint8_t dtrPin = 7;
 
 class ThreadController;
 
@@ -45,11 +45,10 @@ private:
 
   CallStatus callStatus_;
   bool sleepingBuffer_; // use isSleeping()
-};
 
-/** Query for network status */
-#define AT_DIAL_TONE "1,1,15300000"
-#define AT_BUSY_TONE "1,2,15300000"
-#define AT_NO_TONE "0"
+  // interrupt handling
+  static void interrupted();
+  static bool interruptedB;
+};
 
 #endif
