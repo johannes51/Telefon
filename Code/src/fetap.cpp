@@ -1,5 +1,6 @@
 // header include
 #include "fetap.h"
+#include "log.h"
 
 #include <avr/power.h>
 
@@ -53,14 +54,14 @@ String Fetap::commenceDialing()
   String result;
   while (isUnhooked() && !isDoneDialing()) {
     if (isTurned()) {
-      Serial.println("isturned");
+      logLn("isturned");
       auto digit = listenForDigit();
       if (digit >= 0) {
         result += (char)('0' + digit);
       }
       lastDigitMillis_ = millis();
-      Serial.print("Nummer: ");
-      Serial.println(result);
+      log("Nummer: ");
+      logLn(result);
     }
   }
   return result;

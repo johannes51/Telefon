@@ -45,6 +45,7 @@ private:
 
   CallStatus callStatus_;
   bool sleepingBuffer_; // use isSleeping()
+  unsigned long lastPoll_;
 
   // interrupt handling
   static void interrupted();

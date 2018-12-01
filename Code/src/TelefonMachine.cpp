@@ -1,32 +1,34 @@
 #include "TelefonMachine.h"
 
+#include "log.h"
+
 StateMachine<GlobalState>* telefonMachine;
 
 // transition functions
 
 void startRinging(GlobalState* globalState)
 {
-  Serial.println(F("idle->ringing"));
+  logLn(F("idle->ringing"));
   globalState->tranisitionTime = millis();
 }
 
 void stopRinging(GlobalState* globalState)
 {
-  Serial.println(F("ringing->idle"));
+  logLn(F("ringing->idle"));
   globalState->fetap.stopRinging();
   globalState->tranisitionTime = millis();
 }
 
 void startDialtone(GlobalState* globalState)
 {
-  Serial.println(F("idle->dialing"));
+  logLn(F("idle->dialing"));
   globalState->mobile.setDialtone(true);
   globalState->tranisitionTime = millis();
 }
 
 void stopDialtone(GlobalState* globalState)
 {
-  Serial.println(F("dialing->idle"));
+  logLn(F("dialing->idle"));
   globalState->mobile.setDialtone(false);
   globalState->tranisitionTime = millis();
 }
@@ -34,15 +36,15 @@ void stopDialtone(GlobalState* globalState)
 void processOutboundCall(GlobalState* globalState)
 {
   globalState->mobile.setDialtone(false);
-  Serial.println(F("dialing->call"));
-  Serial.println(globalState->number);
+  logLn(F("dialing->call"));
+  logLn(globalState->number);
   globalState->mobile.startCall(globalState->number);
   globalState->tranisitionTime = millis();
 }
 
 void processInboundCall(GlobalState* globalState)
 {
-  Serial.println(F("idle->ringing"));
+  logLn(F("idle->ringing"));
   globalState->fetap.stopRinging();
   globalState->mobile.startCall();
   globalState->tranisitionTime = millis();
@@ -50,7 +52,7 @@ void processInboundCall(GlobalState* globalState)
 
 void endCall(GlobalState* globalState)
 {
-  Serial.println(F("call->idle"));
+  logLn(F("call->idle"));
   globalState->mobile.setHangupTone(false);
   globalState->mobile.hangUp();
   globalState->tranisitionTime = millis();
@@ -58,26 +60,26 @@ void endCall(GlobalState* globalState)
 
 void sleepSim(GlobalState* globalState)
 {
-  Serial.println(F("idle->halfsleep"));
+  logLn(F("idle->halfsleep"));
   globalState->mobile.sleepSim();
   globalState->tranisitionTime = millis();
 }
 
 void wakeUpMobile(GlobalState* globalState)
 {
-  Serial.println(F("halfsleep->idle"));
+  logLn(F("halfsleep->idle"));
   globalState->tranisitionTime = millis();
 }
 
 void gotoSleep(GlobalState* globalState)
 {
-  Serial.println(F("halfsleep->sleep"));
+  logLn(F("halfsleep->sleep"));
   globalState->tranisitionTime = millis();
 }
 
 void wakeUp(GlobalState* globalState)
 {
-  Serial.println(F("sleep->idle"));
+  logLn(F("sleep->idle"));
   globalState->tranisitionTime = millis();
 }
 

@@ -1,5 +1,6 @@
 // header include
 #include "mobile.h"
+#include "log.h"
 
 #include <avr/power.h>
 #include <SIM800.h>
@@ -13,12 +14,15 @@ bool Mobile::interruptedB = true;
 
 Mobile::Mobile()
 : sleepingBuffer_(true)
+, lastPoll_(0)
 {
+  logLn(F("setting up mobile"));
   pinMode(dtrPin, OUTPUT);
   wakeSim();
   SIM.alertMode(CmdType::SET, "1");
   SIM.slowClock(CmdType::SET, "1");
   pinMode(ringPin, INPUT);
+  logLn(F("mobile set up"));
 }
 
 Mobile::~Mobile()
@@ -62,8 +66,8 @@ void Mobile::startCall(String& Number)
   wakeSim();
   Number += ";";
   SIM.originCall(Number.c_str());
-  Serial.print(F("Call reply: "));
-  Serial.println(SIM.getBuffer());
+  log(F("Call reply: "));
+  logLn(SIM.getBuffer());
 }
 
 /*!
@@ -90,8 +94,8 @@ void Mobile::setDialtone(bool tone)
   do {
     SIM.stkPlayTone(CmdType::SET, params.c_str());
   } while (!SIM.reply("OK"));
-  Serial.print(F("dial reply: "));
-  Serial.println(SIM.getBuffer());
+  log(F("dial reply: "));
+  logLn(SIM.getBuffer());
 }
 
 void Mobile::setHangupTone(bool tone)
@@ -106,14 +110,14 @@ void Mobile::setHangupTone(bool tone)
   do {
     SIM.stkPlayTone(CmdType::SET, params.c_str());
   } while (!SIM.reply("OK"));
-  Serial.print(F("hangup reply: "));
-  Serial.println(SIM.getBuffer());
+  log(F("hangup reply: "));
+  logLn(SIM.getBuffer());
 }
 
 void Mobile::sleepSim()
 {
   if (!sleepingBuffer_) {
-    Serial.println(F("sleepSim"));
+    logLn(F("sleepSim"));
     digitalWrite(dtrPin, HIGH);
     SIM.end();
     // power_usart0_disable(); once we use HW Serial
@@ -124,9 +128,11 @@ void Mobile::sleepSim()
 
 Mobile::CallStatus Mobile::getCs()
 {
-  if (!isSleeping()) {
+
+  if (!isSleeping() && millis() > lastPoll_ + 500) {
     SIM.activity(CmdType::EXE);
     auto reply = String(SIM.getBuffer());
+    lastPoll_ = millis();
     auto cs = reply.substring(reply.indexOf("+CPAS: ") + 7,
                               reply.indexOf("+CPAS: ") + 9).toInt();
     switch (cs) {

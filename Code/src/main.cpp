@@ -3,6 +3,7 @@
 #include <avr/power.h>
 // project includes
 #include "TelefonMachine.h"
+#include "log.h"
 
 /*!
 * @mainpage Telefon
@@ -21,15 +22,15 @@
 void setup()
 {
   Serial.begin(9600);
-  Serial.println(F(""));
-  Serial.println(F("start setup"));
+  logLn(F(""));
+  logLn(F("start setup"));
   power_adc_disable(); //should not do anything
   power_timer1_disable(); // this is probably not used
   // power_spi_disable(); // this might be used by the ISP, neccessary?
   power_twi_disable(); // used by noone, probably disable
-  Serial.println(F("setup TelefonMachine"));
+  logLn(F("setup TelefonMachine"));
   setupTelefonMachine();
-  Serial.println(F("setup done"));
+  logLn(F("setup done"));
 }
 
 /*!
@@ -38,14 +39,14 @@ void setup()
  */
 void loop()
 {
-  // Serial.println(F("1"));
+  // logLn(F("1"));
   // telefonMachine->_globalState.fetap.setRinger(true);
-  // Serial.println(F("2"));
+  // logLn(F("2"));
   // delay(1000);
-  // Serial.println(F("3"));
+  // logLn(F("3"));
   // telefonMachine->_globalState.fetap.setRinger(false);
-  // Serial.println(F("4"));
+  // logLn(F("4"));
   // delay(1000);
-  // Serial.println(F("5"));
+  // logLn(F("5"));
   telefonMachine->execute();
 }
